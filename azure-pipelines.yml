@@ -1,0 +1,185 @@
+# CI process script for Snap.Hutao
+# Usage:
+# 1. Append the script in Pipelines
+# 2. Upload the pfx and cer certificates to Pipelines Library secrets
+# 3. Permit the pfx usage
+# 4. Add a `pw` variable in the script variables, which is pfx password
+# 5. Connect the GitHub in project settings
+# 6. Run
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    exclude:
+    - README.md
+    - azure-pipelines.yml
+    - .github/ISSUE_TEMPLATE/*.yml
+    - .github/workflows/*.yml
+    - src/Snap.Hutao/Snap.Hutao/Resource/Localization/*.resx
+pr:
+  branches:
+   include:
+   - main
+  paths:
+   exclude:
+     - README.md
+     - azure-pipelines.yml
+     - .github/ISSUE_TEMPLATE/*.yml
+     - .github/workflows/*.yml
+     - src/Snap.Hutao/Snap.Hutao/Resource/Localization/*.resx
+    
+
+pool:
+  vmImage: 'windows-2022'
+
+variables:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  solution: '$(Build.SourcesDirectory)/src/Snap.Hutao/Snap.Hutao.sln'
+  project: $(Build.SourcesDirectory)/src/Snap.Hutao/Snap.Hutao/Snap.Hutao.csproj'
+  buildPlatform: 'x64'
+  buildConfiguration: 'Release'
+  build_date: $[ format('{0:yyyy}.{0:M}.{0:d}', pipeline.startTime) ]
+
+
+steps:
+- task: GetRevision@1
+  displayName: get Pipelines revision number
+  inputs:
+    VariableName: 'rev_number'
+
+- task: UseDotNet@2
+  displayName: Install dotNet
+  inputs:
+    packageType: 'sdk'
+    version: '7.x'
+    includePreviewVersions: true
+
+- task: NuGetToolInstaller@1
+  name: 'NuGetToolInstaller'
+  displayName: 'NuGet Installer'
+
+- task: NuGetCommand@2
+  displayName: NuGet restore
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+    feedsToUse: 'select'
+
+- task: MsixPackaging@1
+  displayName: Build binary package
+  inputs:
+    outputPath: '$(Build.ArtifactStagingDirectory)/'
+    solution: '$(solution)'
+    clean: false
+    generateBundle: false
+    buildConfiguration: 'Release'
+    buildPlatform: 'x64'
+    updateAppVersion: false
+    appPackageDistributionMode: 'SideloadOnly'
+    msbuildLocationMethod: 'location'
+    msbuildLocation: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Msbuild\Current\Bin\MSBuild.exe'
+
+- task: MagicChunks@2
+  inputs:
+    sourcePath: '$(Build.SourcesDirectory)\src\Snap.Hutao\Snap.Hutao\bin\x64\Release\net7.0-windows10.0.18362.0\win10-x64\AppxManifest.xml'
+    fileType: 'Xml'
+    targetPathType: 'source'
+    transformationType: 'json'
+    transformations: |
+      {
+        "Package/Identity/@Name": "7f0db578-026f-4e0b-a75b-d5d06bb0a74c",
+        "Package/Identity/@Publisher": "CN=DGP Studio CI",
+        "Package/Identity/@Version": "$(build_date).$(rev_number)",
+        "Package/Properties/DisplayName": "胡桃 Alpha",
+        "Package/Properties/PublisherDisplayName":"DGP Studio CI",
+        "Package/Applications/Application/uap:VisualElements/@DisplayName": "胡桃 Alpha"
+      }
+
+- task: CmdLine@2
+  displayName: Create resources folder
+  inputs:
+    script: |
+      mkdir Assets
+      
+      mkdir Resource
+    workingDirectory: '$(Build.SourcesDirectory)\src\Snap.Hutao\Snap.Hutao\bin\x64\Release\net7.0-windows10.0.18362.0\win10-x64'
+      
+
+- task: CopyFiles@2
+  displayName: Copy Assets Folder
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\src\Snap.Hutao\Snap.Hutao\Assets'
+    Contents: '**'
+    TargetFolder: '$(Build.SourcesDirectory)\src\Snap.Hutao\Snap.Hutao\bin\x64\Release\net7.0-windows10.0.18362.0\win10-x64\Assets'
+
+- task: CopyFiles@2
+  displayName: Copy Resource Folder
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)\src\Snap.Hutao\Snap.Hutao\Resource'
+    Contents: '**'
+    TargetFolder: '$(Build.SourcesDirectory)\src\Snap.Hutao\Snap.Hutao\bin\x64\Release\net7.0-windows10.0.18362.0\win10-x64\Resource'
+
+- task: CmdLine@2
+  displayName: Build MSIX
+  inputs:
+    script: '"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22000.0\x64\makeappx.exe" pack /d $(Build.SourcesDirectory)\src\Snap.Hutao\Snap.Hutao\bin\x64\Release\net7.0-windows10.0.18362.0\win10-x64 /p $(Build.ArtifactStagingDirectory)/Snap.Hutao.Alpha-$(build_date).$(rev_number).msix'
+
+- task: MsixSigning@1
+  name: signMsix
+  displayName: Sign MSIX package
+  inputs:
+    package: '$(Build.ArtifactStagingDirectory)/Snap.Hutao.Alpha-$(build_date).$(rev_number).msix'
+    certificate: 'DGP_Studio_CI.pfx'
+    passwordVariable: 'pw'
+  condition: succeeded()
+
+
+#- task: PublishPipelineArtifact@1
+#  displayName: 'Upload Output'
+#  inputs:
+#    targetPath: '$(Build.ArtifactStagingDirectory)/'
+#    artifact: 'Output'
+#    publishLocation: 'pipeline'
+
+- task: DownloadSecureFile@1
+  name: cerFile
+  displayName: Download Root CA
+  inputs:
+    secureFile: 'Snap.Hutao.CI.cer'
+
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github.com_Masterain'
+    repositoryName: 'DGP-Studio/Snap.Hutao'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'userSpecifiedTag'
+    tag: '$(build_date).$(rev_number)'
+    title: '$(build_date).$(rev_number)'
+    releaseNotesSource: 'inline'
+    releaseNotesInline: |
+      ## 普通用户请勿下载
+      该版本是由 CI 程序自动打包生成的 `Alpha` 测试版本，**仅供开发者测试使用**
+
+      普通用户请[点击这里](https://github.com/DGP-Studio/Snap.Hutao/releases/latest/)下载最新的稳定版本
+
+    assets: |
+      $(Build.ArtifactStagingDirectory)/*
+      $(cerFile.secureFilePath)
+    isPreRelease: true
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+
+- task: DownloadSecureFile@1
+  name: RcloneConfigFile
+  displayName: Download Rclone Config
+  inputs:
+    secureFile: 'rclone.conf'
+
+- task: rclone@1
+  displayName: Upload CI via Rclone
+  inputs:
+    arguments: 'copy $(Build.ArtifactStagingDirectory)/Snap.Hutao.Alpha-$(build_date).$(rev_number).msix downloadDGPCN:/releases/Alpha/'
+    configPath: '$(RcloneConfigFile.secureFilePath)'

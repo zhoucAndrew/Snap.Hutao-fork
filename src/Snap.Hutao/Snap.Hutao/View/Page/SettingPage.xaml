@@ -1,0 +1,207 @@
+﻿<shc:ScopedPage
+    x:Class="Snap.Hutao.View.Page.SettingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:shc="using:Snap.Hutao.Control"
+    xmlns:shcm="using:Snap.Hutao.Control.Markup"
+    xmlns:shv="using:Snap.Hutao.ViewModel"
+    xmlns:wsc="using:WinUICommunity.SettingsUI.Controls"
+    d:DataContext="{d:DesignInstance shv:SettingViewModel}"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <Style BasedOn="{StaticResource SettingButtonStyle}" TargetType="Button">
+            <Setter Property="MinWidth" Value="160"/>
+        </Style>
+        <Style BasedOn="{StaticResource HyperlinkButtonStyle}" TargetType="HyperlinkButton">
+            <Setter Property="MinWidth" Value="160"/>
+            <Setter Property="CornerRadius" Value="{StaticResource ControlCornerRadius}"/>
+        </Style>
+        <Style BasedOn="{StaticResource DefaultComboBoxStyle}" TargetType="ComboBox">
+            <Setter Property="MinWidth" Value="160"/>
+        </Style>
+    </Page.Resources>
+    <ScrollViewer>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MaxWidth="1000"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Margin="16,-16,24,16">
+                <wsc:SettingsGroup Header="{shcm:ResourceString Name=ViewPageSettingAboutHeader}">
+                    <Grid Margin="0,4,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Border
+                            Width="80"
+                            Background="{StaticResource CardBackgroundFillColorDefault}"
+                            BorderBrush="{StaticResource CardStrokeColorDefault}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource CompatCornerRadius}">
+                            <Image Source="ms-appx:///Assets/Square150x150Logo.scale-200.png"/>
+                        </Border>
+
+                        <Grid Grid.Column="1" Margin="16,0,0,0">
+                            <TextBlock Text="Copyright © 2022 - 2023 DGP Studio. All Rights Reserved." TextWrapping="Wrap"/>
+                        </Grid>
+                    </Grid>
+                    <wsc:Setting
+                        Description="{Binding AppVersion}"
+                        Header="{shcm:ResourceString Name=AppName}"
+                        Icon="&#xECAA;"/>
+                    <wsc:Setting Header="{shcm:ResourceString Name=ViewPageSettingDeviceIdHeader}" Icon="&#xE975;">
+                        <wsc:Setting.Description>
+                            <TextBlock
+                                IsTextSelectionEnabled="True"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{Binding DeviceId}"/>
+                        </wsc:Setting.Description>
+                    </wsc:Setting>
+                    <wsc:Setting
+                        Description="{Binding WebView2Version}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingWebview2Header}"
+                        Icon="&#xECAA;"/>
+                    <wsc:Setting
+                        Description="{shcm:ResourceString Name=ViewPageSettingFeedbackDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingFeedbackHeader}"
+                        Icon="&#xED15;">
+                        <HyperlinkButton Content="{shcm:ResourceString Name=ViewPageSettingFeedbackNavigate}" NavigateUri="{StaticResource DocumentLink_BugReport}"/>
+                    </wsc:Setting>
+                    <wsc:Setting
+                        Description="{shcm:ResourceString Name=ViewPageSettingUpdateCheckDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingUpdateCheckHeader}"
+                        Icon="&#xE117;">
+                        <wsc:Setting.ActionContent>
+                            <HyperlinkButton Command="{Binding UpdateCheckCommand}" Content="{shcm:ResourceString Name=ViewPageSettingUpdateCheckAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                </wsc:SettingsGroup>
+
+                <wsc:SettingsGroup Header="{shcm:ResourceString Name=ViewPageSettingApperanceHeader}">
+                    <wsc:Setting
+                        Description="{shcm:ResourceString Name=ViewPageSettingBackdropMaterialDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingBackdropMaterialHeader}"
+                        Icon="&#xE7F7;">
+                        <ComboBox
+                            DisplayMemberPath="Name"
+                            ItemsSource="{Binding BackdropTypes}"
+                            SelectedItem="{Binding SelectedBackdropType, Mode=TwoWay}"/>
+                    </wsc:Setting>
+                </wsc:SettingsGroup>
+
+                <wsc:SettingsGroup Header="{shcm:ResourceString Name=ViewPageSettingGachaLogHeader}">
+                    <wsc:Setting
+                        Description="{shcm:ResourceString Name=ViewPageSettingEmptyHistoryVisibleDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingEmptyHistoryVisibleHeader}"
+                        Icon="&#xE81C;">
+                        <ToggleSwitch
+                            IsOn="{Binding IsEmptyHistoryWishVisible, Mode=TwoWay}"
+                            OffContent="{shcm:ResourceString Name=ViewPageSettingEmptyHistoryVisibleOff}"
+                            OnContent="{shcm:ResourceString Name=ViewPageSettingEmptyHistoryVisibleOn}"
+                            Style="{StaticResource ToggleSwitchSettingStyle}"/>
+                    </wsc:Setting>
+                </wsc:SettingsGroup>
+
+                <wsc:SettingsGroup Header="{shcm:ResourceString Name=ViewPageSettingGameHeader}">
+                    <InfoBar
+                        IsClosable="False"
+                        IsOpen="True"
+                        Message="{shcm:ResourceString Name=ViewPageSettingSetGamePathHint}"
+                        Severity="Informational"/>
+                    <wsc:Setting
+                        Description="{Binding GamePath}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingSetGamePathHeader}"
+                        Icon="&#xE7FC;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding SetGamePathCommand}" Content="{shcm:ResourceString Name=ViewPageSettingSetGamePathAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                    <wsc:Setting
+                        Description="{shcm:ResourceString Name=ViewPageSettingDeleteCacheDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingDeleteCacheHeader}"
+                        Icon="&#xE74D;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding DeleteGameWebCacheCommand}" Content="{shcm:ResourceString Name=ViewPageSettingDeleteCacheAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                </wsc:SettingsGroup>
+
+                <wsc:SettingsGroup Header="{shcm:ResourceString Name=ViewPageSettingStorageHeader}">
+                    <wsc:Setting
+                        Description="{shcm:ResourceString Name=ViewPageSettingDataFolderDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingDataFolderHeader}"
+                        Icon="&#xEC25;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding Experimental.OpenDataFolderCommand}" Content="{shcm:ResourceString Name=ViewPageSettingStorageOpenAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                    <wsc:Setting
+                        Description="{shcm:ResourceString Name=ViewPageSettingSetDataFolderDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingSetDataFolderHeader}"
+                        Icon="&#xE8DE;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding SetDataFolderCommand}" Content="{shcm:ResourceString Name=ViewPageSettingStorageSetAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                    <wsc:Setting
+                        Margin="0,4,0,0"
+                        Description="{shcm:ResourceString Name=ViewPageSettingCacheFolderDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingCacheFolderHeader}"
+                        Icon="&#xE8B7;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding Experimental.OpenCacheFolderCommand}" Content="{shcm:ResourceString Name=ViewPageSettingStorageOpenAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                </wsc:SettingsGroup>
+
+                <wsc:SettingsGroup Header="测试功能">
+                    <InfoBar
+                        IsClosable="False"
+                        IsOpen="True"
+                        Message="测试功能是尚未完善，仅用于 Pollyfill 的功能，未来可能会存在更合理的位置放置这些功能"
+                        Severity="Warning"/>
+                    <wsc:Setting
+                        Description="对当前选中的账号进行签到"
+                        Header="米游社每日签到"
+                        Icon="&#xE9D5;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding ShowSignInWebViewDialogCommand}" Content="打开签到对话框"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                </wsc:SettingsGroup>
+
+                <wsc:SettingsGroup Foreground="{ThemeResource SystemFillColorCriticalBrush}" Header="{shcm:ResourceString Name=ViewPageSettingDangerousHeader}">
+                    <InfoBar
+                        IsClosable="False"
+                        IsOpen="True"
+                        Message="{shcm:ResourceString Name=ViewPageSettingDangerousHint}"
+                        Severity="Error"/>
+
+                    <wsc:Setting
+                        Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                        Description="{shcm:ResourceString Name=ViewPageSettingDeleteTaskDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingDeleteTaskHeader}"
+                        Icon="&#xE7C4;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding Experimental.DeleteAllScheduleTasksCommand}" Content="{shcm:ResourceString Name=ViewPageSettingDangerousAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+
+                    <wsc:Setting
+                        Background="{StaticResource SystemFillColorCriticalBackgroundBrush}"
+                        Description="{shcm:ResourceString Name=ViewPageSettingDeleteUserDescription}"
+                        Header="{shcm:ResourceString Name=ViewPageSettingDeleteUserHeader}"
+                        Icon="&#xE756;">
+                        <wsc:Setting.ActionContent>
+                            <Button Command="{Binding Experimental.DeleteUsersCommand}" Content="{shcm:ResourceString Name=ViewPageSettingDangerousAction}"/>
+                        </wsc:Setting.ActionContent>
+                    </wsc:Setting>
+                </wsc:SettingsGroup>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</shc:ScopedPage>

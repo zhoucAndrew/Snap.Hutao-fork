@@ -1,0 +1,39 @@
+﻿// Const value
+INFINITE
+WM_GETMINMAXINFO
+WM_NCRBUTTONDOWN
+WM_NCRBUTTONUP
+
+// Type & Enum definition
+CWMO_FLAGS
+MINMAXINFO
+
+// COMCTL32
+DefSubclassProc
+SetWindowSubclass
+RemoveWindowSubclass
+
+// KERNEL32
+CreateEvent
+CreateToolhelp32Snapshot
+Module32First
+Module32Next
+ReadProcessMemory
+SetEvent
+WriteProcessMemory
+
+// OLE32
+CoWaitForMultipleObjects
+
+// USER32
+FindWindowEx
+GetDpiForWindow
+GetWindowPlacement
+
+// COM BITS
+BackgroundCopyManager
+IBackgroundCopyCallback
+IBackgroundCopyManager
+
+// WinRT
+IMemoryBufferByteAccess
